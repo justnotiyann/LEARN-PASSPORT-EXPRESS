@@ -6,7 +6,7 @@ const port = process.env.PORT || 3000;
 
 // middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false }));
 
 // config
 const { MONGODB_URL } = require("./app/config");
@@ -14,41 +14,21 @@ const { MONGODB_URL } = require("./app/config");
 // Mongoose
 const mongoose = require("mongoose");
 mongoose
-    .connect(MONGODB_URL, { useNewUrlParser: true })
-    .then(console.log("Connected to database"))
-    .catch((e) => console.log(e.message));
+  .connect(MONGODB_URL, { useNewUrlParser: true })
+  .then(console.log("Connected to database"))
+  .catch((e) => console.log(e.message));
 
-// passport
-const passport = require("passport");
-const e = require("express");
-require("./app/passport/passport")(passport);
 
-// Passport Local
-// const options = (req, res, next) => {
-//     passport.authenticate("local", function (err, user, info) {
-//         if (err || !user || info) next(err || user || info);
-//     })(req, res, next);
-// };
+// Our Api
+const authApi = require('./app/api/auth/router')
+const usersApi = require('./app/api/users/router')
+const homeApi = require('./app/api/protected/home/router')
+const errorHandlingMiddlware = require('./app/middleware/errorHandling')
 
-app.post("/auth/login-local", function (req, res, next) {
-    passport.authenticate("local", function (err, user, info) {
-        if (err) next(err);
-        if (!user) return res.status(400).json({ code: 400, data: ["Invalid Credentials"] });
-    })(req, res, next);
-});
+app.use('/', homeApi)
+app.use("/auth", authApi)
+app.use('/users', usersApi)
 
-app.use(function (err, req, res, next) {
-    res.json({
-        message: err,
-        data: "Dari handle error",
-    });
-});
 
-// app.post("/auth/passport-local", function (req, res, next) {
-//     passport.authenticate("local", function (err, user, info) {
-//         if (err || !user) next(err || user);
-//         if (info) return res.status(200).json({ code: 200, data: [info] });
-//     })(req, res, next);
-// });
-
+app.use(errorHandlingMiddlware)
 app.listen(port, () => console.log("Server up and running"));
