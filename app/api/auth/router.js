@@ -24,6 +24,7 @@ router.post('/register', async function (req, res, next) {
     }
 })
 
+// With passport local
 router.post("/login-local", function (req, res, next) {
     passport.authenticate("local", {
         session: false,
@@ -33,6 +34,23 @@ router.post("/login-local", function (req, res, next) {
         res.redirect("/home")
     })(req, res, next);
 });
+
+
+
+// with passport-google-oauth
+router.get('/google', passport.authenticate('google'))
+router.get( '/google/callback',function(req,res,next){
+  passport.authenticate( 'google',{
+    failureRedirect:'/google/failure'
+  })
+  res.redirect('/home')
+  (req,res,next)
+})
+
+router.get('/google/failure', function (req, res, next) {
+    res.json({ message: "Gagal login with google" })
+})
+
 
 
 
